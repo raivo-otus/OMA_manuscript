@@ -985,8 +985,14 @@ tse <- addRDA(
     tse, assay.type = "clr", method = "euclidean",
     formula = x ~ Age_Months + Country, na.action = na.exclude
     )
+# ... at Phylum level
+altExp(tse, "Phylum") <- addRDA(
+    altExp(tse, "Phylum"), assay.type = "clr", method = "euclidean",
+    formula = x ~ Age_Months + Country, na.action = na.exclude
+    )
 # Remove the RDA object as it takes lot of space
 attr(reducedDim(tse, "RDA"), "obj") <- NULL
+attr(reducedDim(altExp(tse, "Phylum"), "RDA"), "obj") <- NULL
 
 # Perform DAA
 res_full <- maaslin3(
@@ -1055,6 +1061,16 @@ p_tree <- plotRowTree(
     guides(color = "none") +
     theme(text = element_text(size = s))
 
+# Visualize loadings and tree
+p_load <- plotLoadings(
+  altExp(tse, "Phylum"),
+  dimred = "RDA",
+  layout = "heatmap",
+  ncomponents = 2,
+  n = 20,
+  add.tree = TRUE
+)
+
 # Visualize abundances with barplot
 p_bar <- plotAbundance(
     altExp(tse, "Phylum"), assay.type = "relabundance",
@@ -1105,7 +1121,7 @@ p_divergence <- plotColData(tse_sub, y = "divergence", x = "Age_Months") +
     theme(legend.position = "none", text = element_text(size = s))
 
 # Combine plots
-p1 <- (p_tree / p_bar) +
+p1 <- (p_load / p_bar) +
     plot_layout(guides = "collect")
 p2 <- (p_mds / p_rda) +
     plot_layout(heights = c(1, 1))
